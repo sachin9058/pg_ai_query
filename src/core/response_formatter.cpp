@@ -3,7 +3,6 @@
 #include <sstream>
 #include <string>
 #include <nlohmann/json.hpp>
-#include "metadata.hpp"
 
 namespace pg_ai {
 namespace {
@@ -73,12 +72,13 @@ std::string ResponseFormatter::createJSONResponse(
     response["row_limit_applied"] = true;
   }
 
-  // ✅ Add AI metadata (only if explanation exists)
-if (!result.explanation.empty()) {
-  response["sources"] = extractSources(result.explanation);
-  response["confidence"] = calculateConfidence(result.explanation);
-  response["tags"] = extractTags(result.explanation);
-}
+  if (result.confidence_score.has_value()) {
+    response["confidence_score"] = result.confidence_score.value();
+  }
+
+  if (result.metadata.is_object() && !result.metadata.empty()) {
+    response["metadata"] = result.metadata;
+  }
 
   return response.dump(2);  // Pretty print with 2-space indentation
 }

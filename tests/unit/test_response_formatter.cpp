@@ -319,6 +319,21 @@ TEST_F(ResponseFormatterTest, EmptyWarningsNotIncluded) {
   EXPECT_FALSE(j.contains("warnings"));
 }
 
+TEST_F(ResponseFormatterTest, JSONIncludesConfidenceAndMetadata) {
+  auto result = createBasicResult();
+  result.confidence_score = 0.92;
+  result.metadata = json{{"intent", "analytics"}, {"tables_used", {"users"}}};
+  auto config = createConfig(true, true, false, false);
+
+  std::string output = ResponseFormatter::formatResponse(result, config);
+  json j = json::parse(output);
+
+  ASSERT_TRUE(j.contains("confidence_score"));
+  EXPECT_DOUBLE_EQ(j["confidence_score"].get<double>(), 0.92);
+  ASSERT_TRUE(j.contains("metadata"));
+  EXPECT_EQ(j["metadata"]["intent"], "analytics");
+}
+
 // Test empty visualization is not included
 TEST_F(ResponseFormatterTest, EmptyVisualizationNotIncluded) {
   auto result = createBasicResult();
